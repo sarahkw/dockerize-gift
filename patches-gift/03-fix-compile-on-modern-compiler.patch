@@ -1,0 +1,152 @@
+commit 6e25ae69294055a92c80a000f4ab0d12743eca4a
+Author: Sarah Wong <netcatkate@gmail.com>
+Date:   Mon Oct 10 22:33:41 2022 -0400
+
+    Fix compilation on modern compiler
+
+diff --git a/libGIFTAcDistanceMatrix/include/CPersistentMatrix.h b/libGIFTAcDistanceMatrix/include/CPersistentMatrix.h
+index 67cdefa..047712e 100644
+--- a/libGIFTAcDistanceMatrix/include/CPersistentMatrix.h
++++ b/libGIFTAcDistanceMatrix/include/CPersistentMatrix.h
+@@ -75,7 +75,7 @@ CPersistentMatrix<T>::CPersistentMatrix(long inXSize,
+ 
+ template<class T>
+ bool CPersistentMatrix<T>::create(char const* inFileName)const{
+-  fstream* lFile=new fstream(inFileName,fstream::out+fstream::in);
++  fstream* lFile=new fstream(inFileName,fstream::out | fstream::in);
+   CPersistentVector<T> lLine(mXSize);
+   if(lFile){
+     for(long i=0;
+@@ -202,7 +202,7 @@ bool CPersistentMatrix<T>::setValue(long inX,
+ 
+   mContent->flush();
+ 
+-  return (*mContent);
++  return !!(*mContent);
+ }
+ 
+ ///
+diff --git a/libGIFTAcDistanceMatrix/include/CPersistentVector.h b/libGIFTAcDistanceMatrix/include/CPersistentVector.h
+index ba2bfa6..1fb0bdc 100644
+--- a/libGIFTAcDistanceMatrix/include/CPersistentVector.h
++++ b/libGIFTAcDistanceMatrix/include/CPersistentVector.h
+@@ -110,10 +110,10 @@ bool CPersistentVector<T>::read(istream& inStream,
+ 
+     assert(lToBeRead>=0 && lToBeRead<=1);
+ 
+-    push_back(lToBeRead);
++    vector<T>::push_back(lToBeRead);
+   }
+   mLength=inLength;
+-  return inStream;
++  return !!inStream;
+ }
+ 
+ template<class T>
+@@ -125,7 +125,7 @@ bool CPersistentVector<T>::write(ostream& outStream)const{
+ 		  *i);
+   }
+   outStream << flush;
+-  return outStream;
++  return !!outStream;
+ }
+ 
+ #endif
+diff --git a/libGIFTAcInvertedFile/cc/CAcIFFileSystem.cc b/libGIFTAcInvertedFile/cc/CAcIFFileSystem.cc
+index 4c8d5e5..a7ded18 100644
+--- a/libGIFTAcInvertedFile/cc/CAcIFFileSystem.cc
++++ b/libGIFTAcInvertedFile/cc/CAcIFFileSystem.cc
+@@ -601,7 +601,7 @@ bool CAcIFFileSystem::newGenerateInvertedFile(){
+   ifstream lInAuxiliaryFile(lLastFileUsed.c_str());
+ 
+   cout << "Opening sorted stream for reading. State (should be '1'): "
+-       << lInAuxiliaryFile
++       << !!lInAuxiliaryFile
+        << endl;
+   
+   if(lInAuxiliaryFile){
+diff --git a/libGIFTAcInvertedFile/cc/CAdditionalDocumentInformation.cc b/libGIFTAcInvertedFile/cc/CAdditionalDocumentInformation.cc
+index 3a0336e..2a3d8a3 100644
+--- a/libGIFTAcInvertedFile/cc/CAdditionalDocumentInformation.cc
++++ b/libGIFTAcInvertedFile/cc/CAdditionalDocumentInformation.cc
+@@ -267,7 +267,7 @@ bool CAdditionalDocumentInformation::output(ostream& outStream)const{
+ 	    << mDFSquareSum
+ 	    << " " 
+ 	    << mSquareDFLogICFSum;
+- return outStream;
++ return !!outStream;
+ };
+ 
+ 
+@@ -299,7 +299,7 @@ bool CAdditionalDocumentInformation::input(istream& inStream){
+        << flush 
+        << endl;
+ #endif
+-  return inStream;
++  return !!inStream;
+ };
+ 
+ 
+diff --git a/libGIFTAcInvertedFile/cc/CDocumentFrequencyElement.cc b/libGIFTAcInvertedFile/cc/CDocumentFrequencyElement.cc
+index 84f13db..84569c8 100644
+--- a/libGIFTAcInvertedFile/cc/CDocumentFrequencyElement.cc
++++ b/libGIFTAcInvertedFile/cc/CDocumentFrequencyElement.cc
+@@ -66,7 +66,7 @@ static unsigned const int sFREQ_MAX=(FREQ_MAX);
+ bool CDocumentFrequencyElement::input(istream& inStream){
+   inStream >> mContent.mID 
+ 	   >> mContent.mDocumentFrequency;
+-  return inStream;
++  return !!inStream;
+ };
+ 
+ 
+@@ -87,7 +87,7 @@ bool CDocumentFrequencyElement::output(ostream& outStream)const{
+ 	    << " " 
+ 	    << mContent.mDocumentFrequency
+ 	    << endl;
+-  return outStream;
++  return !!outStream;
+ };
+ 
+ 
+@@ -124,7 +124,7 @@ bool CDocumentFrequencyElement::writeBinary(ostream& outStream)const{
+   outStream.write((char*)this,
+ 		  sizeof(*this));
+ #endif
+-  return outStream;
++  return !!outStream;
+ };
+ 
+ 
+diff --git a/libGIFTAcURL2FTS/cc/CAcURL2FTS.cc b/libGIFTAcURL2FTS/cc/CAcURL2FTS.cc
+index fd1cbd5..5d247e0 100644
+--- a/libGIFTAcURL2FTS/cc/CAcURL2FTS.cc
++++ b/libGIFTAcURL2FTS/cc/CAcURL2FTS.cc
+@@ -120,7 +120,7 @@ CAcURL2FTS::CAcURL2FTS(const CXMLElement& inCollectionElement):
+     cout << " ...success." 
+ 	 << endl;
+   
+-  mWellConstructed=mURLToFeatureFile;
++  mWellConstructed=!!mURLToFeatureFile;
+   
+   mURLToFFN.clear();
+   mURLToID.clear();
+diff --git a/libMRML/cc/CAccessorImplementation.cc b/libMRML/cc/CAccessorImplementation.cc
+index 0247098..abeabf1 100644
+--- a/libMRML/cc/CAccessorImplementation.cc
++++ b/libMRML/cc/CAccessorImplementation.cc
+@@ -310,7 +310,12 @@ pair<bool,TID> CAccessorImplementation::URLToID(const string& inURL)const
+   
+   if(lI!=mURLToID.end())
+     {
+-      return make_pair<bool,TID>(true,(*lI).second);
++      TID value = (*lI).second;
++#if __cplusplus >= 201103L
++      return make_pair<bool,TID>(true,move(value));
++#else
++      return make_pair<bool,TID>(true,value);
++#endif
+     }
+   else
+     {
+

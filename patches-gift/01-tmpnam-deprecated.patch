@@ -1,0 +1,43 @@
+commit bcc5b7332fb33eb524beece683e9f58ffe97ca24
+Author: Sarah Wong <netcatkate@gmail.com>
+Date:   Mon Oct 10 22:31:16 2022 -0400
+
+    gift-add-collection: tmpnam() is deprecated
+
+diff --git a/scripts/perl/gift-add-collection.pre-pl b/scripts/perl/gift-add-collection.pre-pl
+index 24d44cb..2604044 100644
+--- a/scripts/perl/gift-add-collection.pre-pl
++++ b/scripts/perl/gift-add-collection.pre-pl
+@@ -34,7 +34,7 @@ use File::Find;
+ use File::Path;
+ use File::Copy;
+ use Text::Iconv;
+-use POSIX qw(tmpnam);
++use File::Temp qw(tempfile);
+ use strict;
+ use vars qw($self
+   
+@@ -45,7 +45,7 @@ use vars qw($self
+       $lName
+       $lExtension
+ 
+-      *FH
++      $FH
+ 
+       $lCountPotentialImages
+       $lCountVisitedImages
+@@ -709,11 +709,9 @@ Copying $CONFIG to $OLDCONFIG
+       #            2. parse the file. 3. delete the file.
+       my $lName="";
+       {
+-  do { 
+-    $lName = tmpnam(); 
+-  } until sysopen(FH, $lName, O_RDWR|O_CREAT|O_EXCL, 0600);
+-  print FH $lString;
+-  close FH;
++  ($FH, $lName) = tempfile();
++  print $FH $lString;
++  close $FH;
+       }
+       my $lCollection=$lParser->parsefile($lName);
+       unlink $lName;

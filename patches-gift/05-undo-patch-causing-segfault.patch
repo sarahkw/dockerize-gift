@@ -1,0 +1,159 @@
+commit 38b88b30df4f80cd63b196237448f80fb418ed13
+Author: Sarah Wong <netcatkate@gmail.com>
+Date:   Mon Oct 10 22:36:17 2022 -0400
+
+    Undo cc438af9f323b17c48ed890da26116809bcc6fed, this was crashing
+
+diff --git a/FeatureExtraction/gabor.c b/FeatureExtraction/gabor.c
+index 7c78129..369b44f 100644
+--- a/FeatureExtraction/gabor.c
++++ b/FeatureExtraction/gabor.c
+@@ -7,6 +7,8 @@
+ #include <unistd.h>
+ #include <ppm.h>
+ 
++#include <gift_features.h>
++
+ #include "gabor.h"
+ 
+ /* for uint32_t */
+@@ -84,109 +86,67 @@ void create_filter_kernels(double ** kernelsxy) {
+ 
+ /* conv, conv2, and output need to be cleared before feeding them to this function. */
+ /* conv and conv2 are just temporary space, for juggling image data between filters */
+-void gabor_filter(double *image, int width, int height, int filter_scale, int orientation, double **kernelsxy, double *conv, double *conv2, double *output) {
+-
++void gabor_filter(double *image, int width, int height, int filter_scale, int orientation, double **kernelsxy, double *conv_ignore, double *conv2_ignore, double *output) {
+ 	uint32_t x, y;
+-	uint32_t k;
++	int32_t t_x, t_y;
++	uint32_t i;
+ 	double * target_kernal;
+-	double * target_conv;
+-	double * target_image;
+-	double temparray[MAX_KERNAL_SIZE];
++	double conv[MAX_WIDTH*MAX_HEIGHT]; /* take advantage of our fixed image size. */
++
++	memset(&conv, 0, MAX_WIDTH*MAX_HEIGHT*sizeof(double)); 
+ 
+-	/* first convolution */
+ 	target_kernal=kernelsxy[filter_scale*num_gabors_per_scale+orientation];
++
++	/* first convolution */
+ 	for (x = 0; x < width; x++) {
+ 	for (y = 0; y < height; y++) {
+-		target_image=&image[(width*height-1)-(y*width+x+kernal_size[filter_scale]/2)];
+-		if ((x>=kernal_size[filter_scale]/2) && ((x+kernal_size[filter_scale]/2)<width))
+-		  {
+-		    for (k = 0; k < kernal_size[filter_scale]; k++)
+-		      temparray[k]= target_kernal[k]*target_image[k];
+-		    for (k = 0; k < kernal_size[filter_scale]; k++)
+-		      conv[((width*height)-1)-(x*height+y)] += temparray[k];
+-		  }
+-		else
+-		  {
+-		for (k=0; k < kernal_size[filter_scale]; k++) {
+-			if ((x+kernal_size[filter_scale]/2 >= k) && (x+kernal_size[filter_scale]/2 < width+k)) {
+-				conv[((width*height)-1)-(x*height+y)] +=
+-					target_kernal[k]*target_image[k];
++		output[y*width + x] = 0; /* might as well be here */
++		for (t_x = -kernal_size[filter_scale]/2; t_x <= kernal_size[filter_scale]/2; t_x++) {
++			if (((x - t_x) >= 0) && ((x - t_x) < width)) {
++				conv[y*width + x] +=
++					target_kernal[t_x + kernal_size[filter_scale]/2]*image[65536-(y*width+ (x - t_x))];
+ 			}
+ 		}
+-		  }
+ 	}
+ 	}
+ 
+-	/* second convolution */
+ 	target_kernal=&target_kernal[kernal_size[filter_scale]];
++	/* second convolution */
+ 	for (x = 0; x < width; x++) {
+ 	for (y = 0; y < height; y++) {
+-		target_conv=&conv[((width*height)-1)-(x*height+y+(kernal_size[filter_scale]/2))];
+-		if (((y>=kernal_size[filter_scale]/2)) && ((y+kernal_size[filter_scale]/2)<height))
+-		  {
+-		    /* first do the matrix multiply, then do the summation, so the matrix multiply can be vectored. */
+-		    for (k = 0; k < kernal_size[filter_scale]; k++)
+-		      temparray[k] = target_kernal[k]*target_conv[k];
+-		    for (k = 0; k < kernal_size[filter_scale]; k++)
+-		      output[y*width+x] += temparray[k];
+-		  }
+-		else
+-		  {
+-		for (k = 0; k < kernal_size[filter_scale]; k++) {
+-			if (((y+(kernal_size[filter_scale]/2))>=k) && (y+(kernal_size[filter_scale]/2)<height+k))
++		for (t_y = -kernal_size[filter_scale]/2; t_y <= kernal_size[filter_scale]/2; t_y++) {
++			if (((y - t_y) >= 0) && ((y - t_y) < height))
+ 				output[y*width + x] +=
+-					target_kernal[k]*target_conv[k];
++					target_kernal[t_y + kernal_size[filter_scale]/2]*conv[(y - t_y)*width + x];
+ 		}
+-		  }
+ 	}
+ 	}
+ 
+-	/* third convolution */
++	for (i = 0; i < width*height; i++)
++		conv[i] = 0;
++
+ 	target_kernal=&target_kernal[kernal_size[filter_scale]];
++	/* third convolution */
+ 	for (x = 0; x < width; x++) {
+ 	for (y = 0; y < height; y++) {
+-		target_image=&image[(width*height-1)-(y*width+x+kernal_size[filter_scale]/2)];
+-		if ((x>=kernal_size[filter_scale]/2) && ((x+kernal_size[filter_scale]/2)<width))
+-		  {
+-		    for (k = 0; k < kernal_size[filter_scale]; k++)
+-		      temparray[k]= target_kernal[k]*target_image[k];
+-		    for (k = 0; k < kernal_size[filter_scale]; k++)
+-		      conv2[((width*height)-1)-(x*height+y)] += temparray[k];
+-		  }
+-		else
+-		  {
+-		for (k=0; k < kernal_size[filter_scale]; k++) {
+-			if ((x+kernal_size[filter_scale]/2 >= k) && (x+kernal_size[filter_scale]/2 < width+k)) {
+-				conv2[((width*height)-1)-(x*height+y)] +=
+-					target_kernal[k]*target_image[k];
++		for (t_x = -kernal_size[filter_scale]/2; t_x <= kernal_size[filter_scale]/2; t_x++) {
++			if (((x - t_x) >= 0) && ((x - t_x) < width)) {
++				conv[y*width + x] +=
++				        target_kernal[t_x + kernal_size[filter_scale]/2]*image[65536-(y*width + (x - t_x))];
+ 			}
+ 		}
+-		  }
+ 	}
+ 	}
+ 
+-	/* fourth convolution */
+ 	target_kernal=&target_kernal[kernal_size[filter_scale]];
++	/* fourth convolution */
+ 	for (x = 0; x < width; x++) {
+ 	for (y = 0; y < height; y++) {
+-		target_conv=&conv2[((width*height)-1)-(x*height+y+(kernal_size[filter_scale]/2))];
+-		if (((y>=kernal_size[filter_scale]/2)) && ((y+kernal_size[filter_scale]/2)<height))
+-		  {
+-		    /* first do the matrix multiply, then do the summation, so the matrix multiply can be vectored. */
+-		    for (k = 0; k < kernal_size[filter_scale]; k++)
+-		      temparray[k] = target_kernal[k]*target_conv[k];
+-		    for (k = 0; k < kernal_size[filter_scale]; k++)
+-		      output[y*width+x] -= temparray[k];
+-		  }
+-		else
+-		  {
+-		for (k = 0; k < kernal_size[filter_scale]; k++) {
+-			if (((y+(kernal_size[filter_scale]/2))>=k) && (y+(kernal_size[filter_scale]/2)<height+k))
++		for (t_y = -kernal_size[filter_scale]/2; t_y <= kernal_size[filter_scale]/2; t_y++) {
++			if (((y - t_y) >= 0) && ((y - t_y) < height))
+ 				output[y*width + x] -=
+-					target_kernal[k]*target_conv[k];
+-		}
++					target_kernal[t_y + kernal_size[filter_scale]/2]*conv[(y - t_y)*width + x];
+ 		}
+ 	}
+ 	}
+-
+ }
+

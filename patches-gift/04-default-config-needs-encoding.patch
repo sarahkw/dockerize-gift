@@ -1,0 +1,17 @@
+commit 377921c496acafed1f987277d6739ef806e02963
+Author: Sarah Wong <netcatkate@gmail.com>
+Date:   Mon Oct 10 22:34:13 2022 -0400
+
+    Provide encoding for gift-config.mrml skeleton, needed by newer Perl
+
+diff --git a/GIFTServer/gift-config/gift-config.pre-mrml b/GIFTServer/gift-config/gift-config.pre-mrml
+index 59145c1..ff527e3 100644
+--- a/GIFTServer/gift-config/gift-config.pre-mrml
++++ b/GIFTServer/gift-config/gift-config.pre-mrml
+@@ -1,4 +1,4 @@
+-<?xml version="1.0" standalone="no" ?>
++<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+ 
+ <!DOCTYPE mrml SYSTEM "file:__DATADIR__/mrml.dtd">
+ 
+

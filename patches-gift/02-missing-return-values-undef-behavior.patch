@@ -1,0 +1,90 @@
+commit 4b83100377cc70f0cc727e3f1faa907e6b812bc4
+Author: Sarah Wong <netcatkate@gmail.com>
+Date:   Mon Oct 10 22:31:54 2022 -0400
+
+    Fix undefined behavior where we don't return value when we should
+
+diff --git a/libMRML/cc/GIFTExceptions.cc b/libMRML/cc/GIFTExceptions.cc
+index d2225b6..1d54778 100644
+--- a/libMRML/cc/GIFTExceptions.cc
++++ b/libMRML/cc/GIFTExceptions.cc
+@@ -48,6 +48,7 @@ ostream& operator<<(ostream& outStream,const GIFTException& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ 
+ void GIFTException::dummy(){//needed for RTTI/exception catching
+@@ -67,6 +68,7 @@ ostream& operator<<(ostream& outStream,const VEProgrammingMistake& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ 
+ VENotFound::VENotFound(const char* inMessage):
+@@ -78,6 +80,7 @@ ostream& operator<<(ostream& outStream,const VENotFound& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ 
+ VEBaseUnknown::VEBaseUnknown(const char* inMessage):
+@@ -89,6 +92,7 @@ ostream& operator<<(ostream& outStream,const VEBaseUnknown& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ 
+ 
+@@ -101,6 +105,7 @@ ostream& operator<<(ostream& outStream,const VEDoubleInsert& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ 
+ 
+@@ -113,6 +118,7 @@ ostream& operator<<(ostream& outStream,const VEWrongAccessor& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ 
+ 
+@@ -125,6 +131,7 @@ ostream& operator<<(ostream& outStream,const VEWrongAlgorithm& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ VEWrongBaseType::VEWrongBaseType(const char* inMessage):
+     GIFTException(inMessage){
+@@ -135,6 +142,7 @@ ostream& operator<<(ostream& outStream,const VEWrongBaseType& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ VEConfigurationError::VEConfigurationError(const char* inMessage):
+     GIFTException(inMessage){
+@@ -145,6 +153,7 @@ ostream& operator<<(ostream& outStream,const VEConfigurationError& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ 
+ 
+@@ -157,5 +166,6 @@ ostream& operator<<(ostream& outStream,const VEUnknownSession& inException){
+ 	      << inException.mMessage
+ 	      << flush
+ 	      << endl;
++    return outStream;
+ }
+ 
+
