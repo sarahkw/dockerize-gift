@@ -1,5 +1,7 @@
 # dockerize GNU gift
 
+ Dockerize GNU gift and also a sample MRML client. This lets you quickly get something up and running.
+
 ## Directory tree
 
 - PHP_Gift_2004-10-07 is the 'monosock' MRML client found on archive.org, with changes to make it run on modern PHP
