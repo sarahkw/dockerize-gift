@@ -35,7 +35,3 @@ RUN ./bootstrap-cvs.sh && ./configure --prefix=/usr CXXFLAGS="-O0" && make -j8 i
 CMD gift-add-collection.pl --url-prefix "http://localhost:8080/collection" /var/www/html/collection && \
     service apache2 start && \
     gift
-
-# During development:
-#
-# docker run --rm -p 8080:80 -v /home/sarah/Work/clipart:/var/www/html/collection -it your_image
