@@ -1,6 +1,9 @@
 # dockerize GNU gift
 
- Dockerize GNU gift and also a sample MRML client. This lets you quickly get something up and running.
+Dockerize GNU gift and also a sample MRML client. This lets you quickly get something up and running.
+
+Note that this was an exercise to run GNU gift on a modern system. If the Docker image was based on Debian Jessie
+instead of Bullseye, fewer patches would have to be made, and compiler optimization doesn't have to be disabled.
 
 ## Directory tree
 
@@ -11,6 +14,6 @@
 
 ```
 $ docker build .
-$ docker run --rm -p 8080:80 -v /path/to/your/images:/var/www/html/collection -it your_docker_image_name
+$ docker run --rm -p 8080:80 -v /path/to/your/images:/var/www/html/collection -it the_image_name
 ```
 And then take your browser to http://localhost:8080/.
